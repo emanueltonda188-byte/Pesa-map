@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1713">
+<title>PESA MAP — Know where your money goes</title>
+<style>
+:root {
+  --site-primary: #123d2c;
+  --site-secondary: #d6f36a;
+  --site-background: #0b1713;
+  --site-on-primary: #f4f8f2;
+  --site-on-secondary: #17220b;
+  --site-on-background: #edf4ef;
+  --site-font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-font-heading: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-heading-scale: 1;
+  --site-spacing-scale: 1;
+  --site-radius-scale: 1;
+  --site-decoration-opacity: 1;
+  color-scheme: light dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--site-font-body); background: light-dark(#f4f6f1, #0b1713); color: light-dark(#17231d, #edf4ef); }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+.app { min-height: 100vh; background-color: var(--site-background); color: var(--site-on-background); border-radius: 0; }
+.shell { max-width: 1220px; margin: auto; padding: calc(26px * var(--site-spacing-scale)); }
+.topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding: 8px 0 26px; }
+.brand { display:flex; align-items:center; gap:11px; font-weight:850; letter-spacing:-.7px; font-size:20px; }
+.logo { width:39px; height:39px; border-radius:13px; display:grid; place-items:center; background:var(--site-secondary); color:var(--site-on-secondary); font-weight:900; }
+.brand small { display:block; color:#9eafa5; font-weight:500; letter-spacing:0; font-size:11px; margin-top:2px; }
+.top-actions { display:flex; gap:9px; align-items:center; }
+.btn { border:1px solid #2a4035; border-radius:12px; padding:10px 14px; color:var(--site-on-background); background:#14241c; font-weight:700; }
+.btn.primary { background:var(--site-secondary); color:var(--site-on-secondary); border-color:transparent; }
+.btn:hover { filter:brightness(1.08); transform:translateY(-1px); }
+.hero { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin: 10px 0 24px; }
+.eyebrow { color:var(--site-secondary); font-size:11px; letter-spacing:1.8px; font-weight:800; text-transform:uppercase; }
+h1 { font-family:var(--site-font-heading); font-size:calc(36px * var(--site-heading-scale)); letter-spacing:-1.8px; line-height:1.04; margin:9px 0; }
+.sub { color:#a8b7ae; font-size:14px; line-height:1.6; max-width:550px; }
+.date-pill { color:#c2d1c7; border:1px solid #2a4035; background:#122019; padding:10px 13px; border-radius:12px; white-space:nowrap; font-size:12px; }
+.stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:13px; }
+.stat { border:1px solid #24382e; background:#122019; padding:19px; border-radius:calc(18px * var(--site-radius-scale)); min-width:0; }
+.stat-head { display:flex; align-items:center; justify-content:space-between; gap:8px; color:#a9b9af; font-size:12px; }
+.stat-icon { width:31px; height:31px; display:grid; place-items:center; border-radius:10px; background:#1c3024; font-size:15px; }
+.stat-value { font-size:clamp(20px,2.3vw,29px); letter-spacing:-1px; font-weight:800; margin:15px 0 5px; overflow-wrap:anywhere; }
+.stat-foot { font-size:11px; color:#9eafa5; }
+.positive { color:#d6f36a; }
+.content-grid { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr); gap:15px; margin-top:15px; }
+.panel { background:#122019; border:1px solid #24382e; border-radius:calc(18px * var(--site-radius-scale)); padding:20px; min-width:0; }
+.panel-title { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:17px; }
+h2 { font-size:16px; margin:0; letter-spacing:-.3px; }
+.muted { color:#9eafa5; font-size:12px; }
+.budget-list { display:grid; gap:18px; }
+.budget-top { display:flex; justify-content:space-between; gap:10px; font-size:12px; margin-bottom:8px; }
+.budget-top strong { font-weight:700; }
+.track { height:8px; background:#26392f; border-radius:20px; overflow:hidden; }
+.fill { height:100%; width:0; background:var(--site-secondary); border-radius:20px; transition:width .3s ease; }
+.fill.warn { background:#ffba66; }
+.fill.over { background:#ff7777; }
+.goal-card { background:linear-gradient(135deg,#1a3827,#14241b); border:1px solid #34503b; padding:17px; border-radius:15px; }
+.goal-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.goal-name { font-weight:800; font-size:14px; }
+.goal-number { color:var(--site-secondary); font-weight:800; font-size:12px; }
+.goal-sub { font-size:11px; color:#afc0b4; margin:6px 0 14px; }
+.goal-controls { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:13px; }
+.goal-controls input { min-width:0; width:100%; }
+input, select { width:100%; border:1px solid #30483a; border-radius:10px; padding:11px 12px; background:#0d1912; color:#edf4ef; outline:none; }
+input:focus, select:focus { border-color:var(--site-secondary); }
+.field { display:grid; gap:6px; }
+.field label { font-size:11px; color:#b5c4ba; font-weight:700; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.form-grid .wide { grid-column:1/-1; }
+.form-actions { display:flex; gap:9px; margin-top:14px; }
+.form-actions .btn { flex:1; }
+.transactions { margin-top:15px; }
+.transaction-list { display:grid; gap:0; }
+.tx { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:12px; padding:13px 0; border-top:1px solid #25372d; }
+.tx-main { display:flex; align-items:center; gap:11px; min-width:0; }
+.tx-icon { width:37px; height:37px; flex:0 0 auto; border-radius:12px; background:#203329; display:grid; place-items:center; }
+.tx-title { font-size:12px; font-weight:750; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tx-meta { font-size:10px; color:#9eafa5; margin-top:4px; }
+.tx-amount { font-size:12px; font-weight:800; white-space:nowrap; }
+.tx-amount.expense { color:#ffb1a5; }
+.tx-amount.income { color:#d6f36a; }
+.delete { border:0; color:#9eafa5; background:transparent; font-size:18px; padding:5px; }
+.empty { color:#9eafa5; text-align:center; padding:28px 10px; font-size:13px; }
+.tools-grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:15px; }
+.result { background:#0d1912; border:1px solid #2c4235; border-radius:12px; padding:13px; margin-top:12px; }
+.result small { display:block; color:#a9b9af; font-size:11px; }
+.result strong { display:block; font-size:22px; margin-top:4px; letter-spacing:-.5px; }
+.result .detail { font-size:11px; color:#a9b9af; margin-top:5px; }
+.notice { color:#8fa197; font-size:10px; line-height:1.5; margin-top:18px; }
+.toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#d6f36a; color:#17220b; padding:12px 16px; border-radius:12px; font-size:12px; font-weight:800; box-shadow:0 10px 35px #0005; opacity:0; pointer-events:none; transition:opacity .2s; z-index:10; }
+.toast.show { opacity:1; }
+@media(max-width:850px) { .stats {grid-template-columns:repeat(2,minmax(0,1fr));} .content-grid {grid-template-columns:1fr;} .hero {align-items:flex-start; flex-direction:column;} .date-pill {white-space:normal;} }
+@media(max-width:560px) { .shell {padding:17px;} .topbar {padding-bottom:18px;} .brand {font-size:18px;} .top-actions .btn {padding:9px 10px; font-size:11px;} h1 {font-size:32px;} .stat {padding:14px;} .stat-value {font-size:22px;} .panel {padding:16px;} .tools-grid {grid-template-columns:1fr;} .tx {grid-template-columns:minmax(0,1fr) auto auto; gap:7px;} .tx-icon {width:32px;height:32px;} .form-grid {gap:9px;} }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><div class="logo">₭</div><div>PESA MAP<small>YOUR MONEY, IN FOCUS</small></div></div>
+      <div class="top-actions"><button class="btn" id="exportBtn">↓ Export CSV</button><button class="btn primary" id="demoBtn">Load demo</button></div>
+    </header>
+    <section class="hero">
+      <div><div class="eyebrow">Personal finance, simplified</div><h1>Know where your money<br>actually goes.</h1><div class="sub">A clearer view of your income, spending, budgets and goals. Made for everyday life in Kenya.</div></div>
+      <div class="date-pill" id="monthLabel">THIS MONTH</div>
+    </section>
+    <section class="stats" aria-label="Money summary">
+      <article class="stat"><div class="stat-head">Available balance <span class="stat-icon">◈</span></div><div class="stat-value" id="balance">KSh 0</div><div class="stat-foot">Income minus expenses</div></article>
+      <article class="stat"><div class="stat-head">Money in <span class="stat-icon">↗</span></div><div class="stat-value positive" id="income">KSh 0</div><div class="stat-foot">This month</div></article>
+      <article class="stat"><div class="stat-head">Money out <span class="stat-icon">↘</span></div><div class="stat-value" id="expenses">KSh 0</div><div class="stat-foot">This month</div></article>
+      <article class="stat"><div class="stat-head">Savings rate <span class="stat-icon">◎</span></div><div class="stat-value" id="savingsRate">0%</div><div class="stat-foot">Income left after spending</div></article>
+    </section>
+    <section class="content-grid">
+      <article class="panel">
+        <div class="panel-title"><div><h2>Add a transaction</h2><div class="muted" style="margin-top:5px">Record money in or out</div></div><span class="eyebrow">NEW ENTRY</span></div>
+        <form id="txForm">
+          <div class="form-grid">
+            <div class="field"><label for="txType">Transaction type</label><select id="txType"><option value="expense">Expense — money out</option><option value="income">Income — money in</option></select></div>
+            <div class="field"><label for="txAmount">Amount (KSh)</label><input id="txAmount" type="number" min="1" step="1" placeholder="e.g. 250" required></div>
+            <div class="field"><label for="txCategory">Category</label><select id="txCategory"><option>Food</option><option>Transport</option><option>Airtime & data</option><option>Rent & bills</option><option>Shopping</option><option>Education</option><option>Business</option><option>Health</option><option>Salary</option><option>Side hustle</option><option>Other</option></select></div>
+            <div class="field"><label for="txMethod">Payment method</label><select id="txMethod"><option>M-Pesa</option><option>Cash</option><option>Bank</option><option>Card</option><option>Other</option></select></div>
+            <div class="field wide"><label for="txNote">Description (optional)</label><input id="txNote" maxlength="80" placeholder="e.g. lunch, fare, client payment"></div>
+            <div class="field wide"><label for="txDate">Date</label><input id="txDate" type="date" required></div>
+          </div>
+          <div class="form-actions"><button class="btn primary" type="submit">+ Save transaction</button><button class="btn" type="reset">Clear</button></div>
+        </form>
+      </article>
+      <article class="panel">
+        <div class="panel-title"><div><h2>Monthly budgets</h2><div class="muted" style="margin-top:5px">Keep spending in check</div></div><button class="btn" id="editBudgetBtn">Edit</button></div>
+        <div id="budgetEditor" hidden style="margin-bottom:16px">
+          <div class="field"><label for="budgetCategory">Category</label><select id="budgetCategory"><option>Food</option><option>Transport</option><option>Airtime & data</option><option>Rent & bills</option><option>Shopping</option><option>Education</option><option>Business</option><option>Health</option><option>Other</option></select></div>
+          <div class="field" style="margin-top:9px"><label for="budgetAmount">Monthly limit (KSh)</label><input id="budgetAmount" type="number" min="1" placeholder="e.g. 5000"></div>
+          <button class="btn primary" id="saveBudgetBtn" style="margin-top:9px;width:100%" type="button">Save budget</button>
+        </div>
+        <div class="budget-list" id="budgetList"></div>
+        <div class="notice">Budgets reset by calendar month. Amounts are calculated from transactions you enter.</div>
+      </article>
+    </section>
+    <section class="content-grid">
+      <article class="panel">
+        <div class="panel-title"><div><h2>Savings goal</h2><div class="muted" style="margin-top:5px">Make your next target real</div></div><span class="eyebrow">YOUR NEXT WIN</span></div>
+        <div class="goal-card">
+          <div class="goal-head"><div><div class="goal-name" id="goalName">Laptop fund 💻</div><div class="goal-sub" id="goalSub">Small steps add up.</div></div><div class="goal-number" id="goalPercent">0%</div></div>
+          <div class="track"><div class="fill" id="goalFill"></div></div>
+          <div class="goal-controls"><div class="field"><label for="goalTarget">Target (KSh)</label><input id="goalTarget" type="number" min="1" value="50000"></div><div class="field"><label for="goalSaved">Saved so far (KSh)</label><input id="goalSaved" type="number" min="0" value="0"></div></div>
+          <div class="goal-controls"><div class="field" style="grid-column:1/-1"><label for="goalTitle">Goal name</label><input id="goalTitle" maxlength="45" value="Laptop fund 💻"></div></div>
+          <button class="btn primary" id="saveGoalBtn" style="margin-top:12px;width:100%">Update savings goal</button>
+        </div>
+      </article>
+      <article class="panel">
+        <div class="panel-title"><div><h2>Quick money check</h2><div class="muted" style="margin-top:5px">Simple snapshot of your month</div></div><span class="stat-icon">✳</span></div>
+        <div class="result"><small>Biggest spending category this month</small><strong id="topCategory">Not enough data</strong><div class="detail" id="topCategoryDetail">Add expenses to see your pattern.</div></div>
+        <div class="result"><small>Average daily spending this month</small><strong id="dailyAverage">KSh 0</strong><div class="detail">Based on expenses recorded this month.</div></div>
+        <div class="notice">This is a planning tool, not financial advice. PESA MAP never connects to your M-Pesa account or reads SMS messages.</div>
+      </article>
+    </section>
+    <section class="tools-grid">
+      <article class="panel">
+        <div class="panel-title"><div><h2>Business profit calculator</h2><div class="muted" style="margin-top:5px">Check whether the numbers make sense</div></div></div>
+        <div class="form-grid"><div class="field"><label for="revenue">Sales / revenue (KSh)</label><input id="revenue" type="number" min="0" value="10000"></div><div class="field"><label for="costs">Total costs (KSh)</label><input id="costs" type="number" min="0" value="6500"></div></div>
+        <div class="result"><small>Estimated profit</small><strong id="profit">KSh 3,500</strong><div class="detail" id="margin">35.0% profit margin</div></div>
+      </article>
+      <article class="panel transactions">
+        <div class="panel-title"><div><h2>Recent transactions</h2><div class="muted" style="margin-top:5px">Your latest money movements</div></div><span class="eyebrow" id="txCount">0 ENTRIES</span></div>
+        <div class="transaction-list" id="transactionList"></div>
+      </article>
+    </section>
+    <footer class="notice" style="padding:12px 2px 4px">PESA MAP · Private by design · Your data stays in this browser on this device. Export a CSV backup before clearing browser data or changing devices.</footer>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(() => {
+  const KEY = 'pesamap.v1';
+  const today = new Date();
+  const isoDate = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const monthKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  const fmt = n => 'KSh ' + Math.round(Number(n)||0).toLocaleString('en-KE');
+  const safe = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const defaultState = () => ({transactions:[], budgets:{Food:4000,Transport:2500,'Airtime & data':1000,'Rent & bills':8000,Shopping:2000}, goal:{name:'Laptop fund 💻',target:50000,saved:0}});
+  let state;
+  try { state = JSON.parse(localStorage.getItem(KEY)) || defaultState(); } catch { state = defaultState(); }
+  if (!state.transactions || !Array.isArray(state.transactions)) state = defaultState();
+  const $ = id => document.getElementById(id);
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
+  const toast = msg => { $('toast').textContent = msg; $('toast').classList.add('show'); clearTimeout(toast.timer); toast.timer = setTimeout(() => $('toast').classList.remove('show'), 2200); };
+  const currentTx = () => state.transactions.filter(t => t.date && t.date.slice(0,7) === monthKey(today));
+  const sum = (list,type) => list.filter(t => t.type === type).reduce((a,t) => a + Number(t.amount||0),0);
+  const categoryTotals = () => { const totals={}; currentTx().filter(t=>t.type==='expense').forEach(t=>totals[t.category]=(totals[t.category]||0)+Number(t.amount)); return totals; };
+  const render = () => {
+    const monthTx = currentTx(), inc=sum(monthTx,'income'), out=sum(monthTx,'expense');
+    $('monthLabel').textContent = today.toLocaleDateString('en-KE',{month:'long',year:'numeric'}).toUpperCase();
+    $('balance').textContent=fmt(inc-out); $('income').textContent=fmt(inc); $('expenses').textContent=fmt(out);
+    $('savingsRate').textContent=(inc ? Math.round((inc-out)/inc*100) : 0)+'%';
+    const totals=categoryTotals();
+    $('budgetList').innerHTML = Object.entries(state.budgets).map(([cat,limit])=>{
+      const spent=totals[cat]||0, pct=limit>0?Math.min(100,spent/limit*100):0, cl=spent>limit?'over':pct>=80?'warn':'';
+      return `<div><div class="budget-top"><strong>${safe(cat)}</strong><span>${fmt(spent)} <span class="muted">/ ${fmt(limit)}</span></span></div><div class="track"><div class="fill ${cl}" style="width:${pct}%"></div></div><div class="muted" style="margin-top:5px">${spent>limit?`${fmt(spent-limit)} over budget`:`${fmt(limit-spent)} left`}</div></div>`;
+    }).join('') || '<div class="empty">Tap Edit to add your first budget.</div>';
+    const goal=state.goal||{name:'Savings goal',target:1,saved:0}, pct=goal.target>0?Math.min(100,Math.round(goal.saved/goal.target*100)):0;
+    $('goalName').textContent=goal.name; $('goalTitle').value=goal.name; $('goalTarget').value=goal.target; $('goalSaved').value=goal.saved;
+    $('goalPercent').textContent=pct+'%'; $('goalFill').style.width=pct+'%'; $('goalSub').textContent=`${fmt(goal.saved)} saved · ${fmt(Math.max(0,goal.target-goal.saved))} to go`;
+    const entries=Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+    $('topCategory').textContent=entries.length?safe(entries[0][0]):'Not enough data'; $('topCategoryDetail').textContent=entries.length?`${fmt(entries[0][1])} spent this month`:'Add expenses to see your pattern.';
+    const days=Math.max(1,today.getDate()); $('dailyAverage').textContent=fmt(out/days);
+    const sorted=[...state.transactions].sort((a,b)=>(b.date||'').localeCompare(a.date||'') || (b.created||0)-(a.created||0)).slice(0,6);
+    $('txCount').textContent=`${state.transactions.length} ${state.transactions.length===1?'ENTRY':'ENTRIES'}`;
+    $('transactionList').innerHTML=sorted.length?sorted.map(t=>`<div class="tx"><div class="tx-main"><div class="tx-icon">${t.type==='income'?'↗':({'Food':'🍲','Transport':'🚌','Airtime & data':'📱','Rent & bills':'🏠','Shopping':'🛍️','Education':'📚','Business':'🧾','Health':'💊','Other':'◈'}[t.category]||'◈')}</div><div style="min-width:0"><div class="tx-title">${safe(t.note||t.category)}</div><div class="tx-meta">${safe(t.category)} · ${safe(t.method)} · ${safe(t.date)}</div></div></div><div class="tx-amount ${t.type}">${t.type==='income'?'+':'−'}${fmt(t.amount)}</div><button class="delete" data-delete="${safe(t.id)}" aria-label="Delete transaction">×</button></div>`).join(''):'<div class="empty">No transactions yet. Add your first entry above, or load demo data to explore.</div>';
+    calcProfit();
+  };
+  $('txDate').value=isoDate(today);
+  $('txForm').addEventListener('submit',e=>{e.preventDefault(); const amount=Number($('txAmount').value); if(!Number.isFinite(amount)||amount<=0){toast('Enter an amount greater than zero.');return;} state.transactions.push({id:String(Date.now())+Math.random().toString(16).slice(2),type:$('txType').value,amount,category:$('txCategory').value,method:$('txMethod').value,note:$('txNote').value.trim(),date:$('txDate').value,created:Date.now()}); save(); render(); $('txForm').reset(); $('txDate').value=isoDate(today); toast('Transaction saved on this device.');});
+  $('transactionList').addEventListener('click',e=>{const id=e.target.closest('[data-delete]')?.dataset.delete;if(!id)return;state.transactions=state.transactions.filter(t=>t.id!==id);save();render();toast('Transaction deleted.');});
+  $('editBudgetBtn').addEventListener('click',()=>{$('budgetEditor').hidden=!$('budgetEditor').hidden;});
+  $('saveBudgetBtn').addEventListener('click',()=>{const cat=$('budgetCategory').value, amount=Number($('budgetAmount').value);if(!amount||amount<1){toast('Enter a budget greater than zero.');return;}state.budgets[cat]=amount;save();render();$('budgetEditor').hidden=true;$('budgetAmount').value='';toast('Budget updated.');});
+  $('saveGoalBtn').addEventListener('click',()=>{const target=Number($('goalTarget').value),saved=Number($('goalSaved').value),name=$('goalTitle').value.trim()||'Savings goal';if(target<=0||saved<0){toast('Enter a valid target and saved amount.');return;}state.goal={name,target,saved};save();render();toast('Savings goal updated.');});
+  function calcProfit(){const revenue=Math.max(0,Number($('revenue').value)||0),costs=Math.max(0,Number($('costs').value)||0),profit=revenue-costs,margin=revenue?profit/revenue*100:0;$('profit').textContent=(profit<0?'−':'')+fmt(Math.abs(profit));$('margin').textContent=`${margin.toFixed(1)}% profit margin${profit<0?' · You are making a loss':''}`;}
+  $('revenue').addEventListener('input',calcProfit);$('costs').addEventListener('input',calcProfit);
+  $('exportBtn').addEventListener('click',()=>{if(!state.transactions.length){toast('No transactions to export yet.');return;}const rows=[['Date','Type','Amount KSh','Category','Method','Description'],...state.transactions.map(t=>[t.date,t.type,t.amount,t.category,t.method,t.note])];const csv=rows.map(row=>row.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\r\n');const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}));const a=document.createElement('a');a.href=url;a.download='pesa-map-transactions.csv';a.click();URL.revokeObjectURL(url);toast('CSV backup downloaded.');});
+  $('demoBtn').addEventListener('click',()=>{if(state.transactions.length&&!confirm('Add sample transactions to your existing data?'))return;const samples=[['expense',180,'Food','M-Pesa','Lunch','2026-10-03'],['expense',120,'Transport','M-Pesa','Matatu fare','2026-10-05'],['income',3500,'Side hustle','M-Pesa','Design work','2026-10-07'],['expense',500,'Airtime & data','M-Pesa','Weekly bundles','2026-10-10'],['expense',850,'Shopping','Cash','Household items','2026-10-12'],['income',8000,'Salary','Bank','Part-time pay','2026-10-15'],['expense',1400,'Education','M-Pesa','Course materials','2026-10-19'],['expense',300,'Food','M-Pesa','Groceries','2026-10-22']];samples.forEach((s,i)=>state.transactions.push({type:s[0],amount:s[1],category:s[2],method:s[3],note:s[4],date:isoDate(new Date(today.getFullYear(),today.getMonth(),Math.min(today.getDate(),Number(s[5].slice(-2))))),id:'demo'+Date.now()+i,created:Date.now()+i}));save();render();toast('Sample data added. Delete it whenever you want.');});
+  render();
+})();
+</script>
+</body>
+</html>
